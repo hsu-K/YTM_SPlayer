@@ -4,6 +4,11 @@ A small always-on-top "now playing" bar for **YouTube Music on Windows**, built 
 
 It reads what's playing from Windows' media controls (SMTC), so it works with the YouTube Music app installed from Edge/Chrome, the YouTube Music desktop app, or a browser tab — no login or API key needed.
 
+## Download
+
+Get the installer (`YTM_SPlayer_x.y.z_x64_en-US.msi`) from the [Releases](https://github.com/hsu-K/YTM_SPlayer/releases) page.
+The installer isn't code-signed, so Windows SmartScreen may warn on first run: choose **More info → Run anyway**.
+
 ## Features
 
 - Cover art, full title (including Japanese titles) and artist; long titles scroll
