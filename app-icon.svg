@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Source for the app icon. Regenerate all sizes with:
+       npx tauri icon app-icon.svg -->
+  <circle cx="512" cy="512" r="512" fill="#22C55E"/>
+  <circle cx="512" cy="512" r="290" fill="none" stroke="#FFFFFF" stroke-width="62"/>
+  <path d="M430 370 L430 654 L670 512 Z" fill="#FFFFFF"/>
+</svg>

@@ -1,0 +1,268 @@
+:root {
+  font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+  color: #f1f1f1;
+  --muted: #aaaaaa;
+  --bg: #0f0f0f;
+  /* --bar-collapsed is user-adjustable (set from JS, persisted by
+     src-tauri/src/layout.rs). --controls-width must match CONTROLS_WIDTH there. */
+  --bar-collapsed: 220px;
+  /* fallbacks; refined at runtime by useCoverMetrics */
+  --cover-size: 40px;
+  --cover-gap: 5px;
+  --controls-width: 112px;
+  --bar-expanded: calc(var(--bar-collapsed) + var(--controls-width));
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  /* the window is transparent; only .bar is visible */
+  background: transparent;
+}
+
+body {
+  /* frameless window: the whole bar is a drag handle */
+  user-select: none;
+  cursor: default;
+}
+
+/* ---- collapsible bar ---------------------------------------------------- */
+
+.bar {
+  width: var(--bar-collapsed);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  /* left padding = vertical gap around the cover (computed in
+     useCoverMetrics so it's identical in device pixels) */
+  padding: 0 10px 0 var(--cover-gap);
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  /* collapsing: wait a moment (avoids flicker when the cursor grazes the
+     edge), then shrink after the controls have faded out */
+  transition: width 260ms var(--ease-out) 120ms;
+}
+
+.bar.expanded {
+  width: var(--bar-expanded);
+  transition: width 320ms var(--ease-out);
+}
+
+.controls-wrap {
+  flex: none;
+  width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-12px);
+  pointer-events: none;
+  transition:
+    width 260ms var(--ease-out) 120ms,
+    opacity 140ms ease-out,
+    transform 200ms var(--ease-out);
+}
+
+.bar.expanded .controls-wrap {
+  /* exactly the extra width of the expanded bar */
+  width: var(--controls-width);
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  transition:
+    width 320ms var(--ease-out),
+    opacity 240ms ease-out 90ms,
+    transform 320ms var(--ease-out) 40ms;
+}
+
+/* width-adjust mode: follow the slider instantly, no easing lag */
+.bar.adjusting,
+.bar.adjusting .controls-wrap {
+  transition: none;
+}
+
+.meta.adjust {
+  display: flex;
+  align-items: center;
+}
+
+.width-slider {
+  /* fixed width so the thumb doesn't shift while the bar resizes;
+     fits the narrowest bar (MIN_WIDTH 140 - 67 = 73px) */
+  width: 70px;
+  margin: 0;
+  accent-color: #fff;
+  cursor: pointer;
+}
+
+.adjust-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.width-value {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.adjust-actions .done {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.adjust-actions .done:hover {
+  background: #ddd;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .bar.expanded,
+  .controls-wrap,
+  .bar.expanded .controls-wrap {
+    transition: none;
+  }
+}
+
+.cover {
+  flex: none;
+  width: var(--cover-size);
+  height: var(--cover-size);
+  margin-right: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #222;
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-drag: none;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  color: #555;
+}
+
+.meta {
+  /* fixed width so the text never reflows while the bar animates:
+     collapsed width - padding (gap + 10) - border (2) - cover - margin (10) */
+  flex: none;
+  width: calc(var(--bar-collapsed) - var(--cover-gap) - var(--cover-size) - 22px);
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.title,
+.artist {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marquee {
+  text-overflow: clip;
+}
+
+.marquee.is-overflowing {
+  /* fade edges so scrolling text doesn't hard-cut */
+  mask-image: linear-gradient(to right, transparent 0, #000 6px, #000 calc(100% - 10px), transparent);
+}
+
+.marquee .track {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.marquee .track.scrolling {
+  animation: marquee linear infinite;
+}
+
+/* One full cycle moves exactly "text + gap", so the copy lands where the
+   original started and the loop is seamless. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--shift));
+  }
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.artist {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.controls {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.controls button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.controls button:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.controls button.primary {
+  width: 34px;
+  height: 34px;
+  background: #fff;
+  color: #000;
+  font-size: 14px;
+}
+
+.controls button.primary:hover:not(:disabled) {
+  background: #ddd;
+}
+
+.controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
